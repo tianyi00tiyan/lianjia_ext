@@ -1,0 +1,25 @@
+{
+   "browser_action": {
+      "default_icon": "images/128.png",
+      "default_popup": "popup.html",
+      "default_title": "链家访问助手"
+   },
+   "content_scripts": [ {
+      "all_frames": true,
+      "js": [ "js/jquery-1.7.1.min.js", "js/main.js" ],
+      "matches": [ "http://*/*", "https://*/*" ],
+      "run_at": "document_end"
+   } ],
+   "description": "分析链家成交房数据的工具，并实现数据可视化，https://wf.lianjia.com/chengjiao/ ",
+   "icons": {
+      "128": "images/128.png"
+   },
+   "manifest_version": 2,
+   "name": "链家访问助手",
+   "permissions": [ "webRequest","webRequestBlocking", "tabs", "http://*/*", "https://*/*", "contextMenus" ],
+   "version": "1.0.0",
+   "background": {
+      "scripts": ["js/background.js"],
+      "persistent": true
+   }
+}
