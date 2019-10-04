@@ -1,9 +1,9 @@
 /**
  * 需要在后台设计记录当前配置状态
  */
-var START = false; //是否使用插件
-var CollectDataMap = []; //所有的数据集
-var CurPageIndex = 1; //当前的页面
+var START = false; //是否开始
+var START_TIME = ""; //开始时间
+var RESULT = undefined; //查询结果
 
 /**
  * 绑定事件
@@ -26,18 +26,6 @@ var CurPageIndex = 1; //当前的页面
 //     );
 // }
 
-/**
- * 处理收集的数据
- */
-function doCollectData(data) {
-    CurPageIndex = data.curPage;
-    CollectDataMap[CurPageIndex] = data.pricelist;
-
-    //结束判断
-    if (data.curPage >= data.totalPage) {
-        START = false;
-    }
-}
 
 /**
  * 向前台发送消息
@@ -53,15 +41,20 @@ function sendMessage(type, value) {
 /**
  * 接受前台通知的消息
  */
-// chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-// 	switch (request.type) {
-// 		case "FN.collectData":
-//             START = false;
-// 			break;
-// 		default:
-// 			break;
-// 	}
-// });
+chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+	switch (request.type) {
+		case "FN.INIT":
+            START = false; //是否开始
+            RESULT = undefined;
+            break;
+        case "FN.collectData":
+            START = false;
+            RESULT = request.value;
+            break;
+		default:
+			break;
+	}
+});
 
 /**
  * 入口函数

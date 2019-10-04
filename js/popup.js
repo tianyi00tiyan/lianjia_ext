@@ -1,13 +1,13 @@
 const BG = chrome.extension.getBackgroundPage(); //获得BG
-
-var TIMER = "";
-var startTime = "";
+var TIMER = ""; //计时器
 
 /**
  * 初始化界面
  */
 function init() {
-    render()
+    TIMER =  setInterval(() => {
+        render();
+    }, 1000);
 }
 
 /**
@@ -20,35 +20,25 @@ function bindEvent() {
             return;
         }
         BG.START = true;
-        startTime = new Date().getTime();
+        BG.RESULT = undefined;
+        BG.START_TIME = new Date().getTime();
         BG.sendMessage("BG.START", BG.START);
-        TIMER =  setInterval(() => {
-            render();
-        }, 1000);
-       
     })
 }
 
-/**
- * 接受前后台通知的消息
- */
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-	switch (request.type) {
-		case "FN.collectData":
-            BG.START = false;
-            clearInterval(TIMER);
-            render();
-			break;
-		default:
-			break;
-	}
-});
 
 /**
  * 更新页面
  */
 function render() {
-    $('#startBtn').html(BG.START == false ? "START" : "耗时：" + (parseInt(new Date().getTime() - startTime)/1000) + 's');
+    $('#startBtn').html(BG.START == false ? "START" : "COST：" + (parseInt(new Date().getTime() - BG.START_TIME)/1000) + 's');
+
+    if (BG.RESULT) {
+        const {city_name, district_name, avgUnitPrice, toalHouse, succeed } = BG.RESULT;
+        $('#result').html(succeed ? `${city_name}${district_name}${toalHouse}套房子的平均单价是${avgUnitPrice}` : "ERROR！！！!")
+    } else {
+        $('#result').html("开始后会进行统计，结果会在这里显示")
+    }
 }
 
 /**

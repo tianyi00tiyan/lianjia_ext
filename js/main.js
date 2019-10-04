@@ -11,6 +11,7 @@
  */
 
 var isSTART = false; //是否开始
+var toalHouse = 0; //当前房源
 var totalPage = 1; // 所有的页面
 var curPage = 1; // 当前的页面
 var district = ""; //当前的区域
@@ -155,10 +156,17 @@ var district_name = ""; //当前的区域
  */
 function init () {
 	//获取当前的分页状态
-	let pages = JSON.parse($('.house-lst-page-box').attr('page-data'));
+	toalHouse = parseInt($('.total.fl span').html());
+	if (toalHouse <= 0) {
+		sendMessage("FN.collectData", {succeed: false});
+		return false;
+	}
+
 	city_name = $($.find('[name="location"]')).attr('content').match(/city=.*;/g)[0].replace("city=", '').replace(';','');
 	district = window.location.pathname.replace('/chengjiao','').replace(/\/pg\d\//g, '');
 	district_name = $('body').find(`[href="${window.location.pathname}"]`).html();
+
+	let pages = JSON.parse($('.house-lst-page-box').attr('page-data'));
 	totalPage = pages.totalPage;
 	curPage = pages.curPage;
 }
@@ -180,7 +188,10 @@ async function collectData() {
 
 		doTotalPrice(domlist);
 		doUnitPrice(domlist);
-  	});
+  	}).catch(function () {
+		sendMessage("FN.collectData", {succeed: false});
+		return false;
+	});
 }
 
 /**
@@ -205,23 +216,32 @@ function doUnitPrice(domlist) {
 	}
 
 	let sum = _.sum(unitPriceList);
-	let avgUnitPrice = parseInt(sum/domlist.length/unitPriceDomLsit.length, 10)
-	console.log(`${city_name}${district_name}的平均单价是${avgUnitPrice}`)
+	let avgUnitPrice = parseInt(sum/domlist.length/unitPriceDomLsit.length, 10);
+
+	// 通知后台任务完成
+	sendMessage("FN.collectData", {succeed: true, city_name, district_name, toalHouse, avgUnitPrice})
+	
 }
 
 
 /**
  * 从主函数main开始执行
  */
-async function main () {
+function main () {
+	// 通知后台充值之前的操作
+	sendMessage("FN.INIT", {});
+}
+main()
+
+/**
+ * 开始执行
+ */
+async function start () {
 	//初始化
 	init();
 
 	//获得数据
 	await collectData();
-
-	// 通知后台任务完成
-	sendMessage("FN.collectData", {})
 }
 
 /**
@@ -232,7 +252,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
 	switch (request.type) {
 		case "BG.START":
 			if (request.value) {
-				main()
+				start()
 			}
 			break;
 		default:
@@ -244,7 +264,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
  * 向后台发送消息
  */
 function sendMessage(type, value) {
-	chrome.runtime.sendMessage({type: type, value: value});
+	chrome.runtime.sendMessage({type, value});
 }
 
 /**
@@ -254,9 +274,12 @@ function getPageContent(page) {
 	return new Promise((resolve, reject) => {
 		$.ajax({
 			method: "POST",
-			url: `https://wf.lianjia.com/chengjiao${district}/pg${curPage}/`	
+			url: `https://wf.lianjia.com/chengjiao${district}/pg${page}/`	
 		}).done(function( msg ) {
 			resolve(msg);
 		});
 	})
 }
+
+
+
