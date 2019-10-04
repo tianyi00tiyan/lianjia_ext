@@ -13,7 +13,9 @@
 var isSTART = false; //是否开始
 var totalPage = 1; // 所有的页面
 var curPage = 1; // 当前的页面
-var region = ""; //当前的区域
+var district = ""; //当前的区域
+var city_name = ""; //当前城市
+var district_name = ""; //当前的区域
 
 /**
  * 绑定每个图片的点击事件
@@ -154,7 +156,9 @@ var region = ""; //当前的区域
 function init () {
 	//获取当前的分页状态
 	let pages = JSON.parse($('.house-lst-page-box').attr('page-data'));
-	region = window.location.pathname.replace('/chengjiao','').replace(/\/pg\d\//g, '');
+	city_name = $($.find('[name="location"]')).attr('content').match(/city=.*;/g)[0].replace("city=", '').replace(';','');
+	district = window.location.pathname.replace('/chengjiao','').replace(/\/pg\d\//g, '');
+	district_name = $('body').find(`[href="${window.location.pathname}"]`).html();
 	totalPage = pages.totalPage;
 	curPage = pages.curPage;
 }
@@ -163,14 +167,6 @@ function init () {
  * 在页面上收集数据
  */
 function collectData() {
-// 	var pricelist = [];
-// 	for (let i=0; i < $('.unitPrice .number').length; i++) {
-// 		pricelist.push($($('.unitPrice .number')[i]).html());
-// 	}
-	
-// 	// 通知后台拿到的数据
-// 	sendMessage("FN.collectData", {pricelist, curPage, totalPage})
-
 	let promiselist = [];
 	for (let i=1;i <= totalPage;i++) {
 		promiselist.push(getPageContent(i));
@@ -210,7 +206,7 @@ function doUnitPrice(domlist) {
 
 	let sum = _.sum(unitPriceList);
 	let avgUnitPrice = parseInt(sum/domlist.length/unitPriceDomLsit.length, 10)
-	console.log("avgUnitPrice=" + avgUnitPrice)
+	console.log(`${city_name}${district_name}的平均单价是${avgUnitPrice}`)
 }
 
 
@@ -255,7 +251,7 @@ function getPageContent(page) {
 	return new Promise((resolve, reject) => {
 		$.ajax({
 			method: "POST",
-			url: `https://wf.lianjia.com/chengjiao${region}/pg${curPage}/`	
+			url: `https://wf.lianjia.com/chengjiao${district}/pg${curPage}/`	
 		}).done(function( msg ) {
 			resolve(msg);
 		});
