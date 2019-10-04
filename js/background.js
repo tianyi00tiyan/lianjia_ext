@@ -53,16 +53,15 @@ function sendMessage(type, value) {
 /**
  * 接受前台通知的消息
  */
-chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-	console.log(request)
-	switch (request.type) {
-		case "FN.collectData":
-            doCollectData(request.value)
-			break;
-		default:
-			break;
-	}
-});
+// chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
+// 	switch (request.type) {
+// 		case "FN.collectData":
+//             START = false;
+// 			break;
+// 		default:
+// 			break;
+// 	}
+// });
 
 /**
  * 入口函数

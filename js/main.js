@@ -166,13 +166,13 @@ function init () {
 /**
  * 在页面上收集数据
  */
-function collectData() {
+async function collectData() {
 	let promiselist = [];
 	for (let i=1;i <= totalPage;i++) {
 		promiselist.push(getPageContent(i));
 	}
 
-	Promise.all(promiselist).then(function(values) {
+	await Promise.all(promiselist).then(function(values) {
 		let parser = new DOMParser();
 		let domlist = values.map((n) => {
 			return parser.parseFromString(n, "text/html")
@@ -213,12 +213,15 @@ function doUnitPrice(domlist) {
 /**
  * 从主函数main开始执行
  */
-function main () {
+async function main () {
 	//初始化
 	init();
 
 	//获得数据
-	collectData();
+	await collectData();
+
+	// 通知后台任务完成
+	sendMessage("FN.collectData", {})
 }
 
 /**
