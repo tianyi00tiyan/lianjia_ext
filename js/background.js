@@ -8,23 +8,23 @@ var CurPageIndex = 1; //当前的页面
 /**
  * 绑定事件
  */
-function bindEvent() {
-    /**
-     * 监听网络请求和发送网络请求完毕信号
-     * Request URL: https://wf.lianjia.com/chengjiao/
-     */
-    chrome.webRequest.onCompleted.addListener(function(details) {
-            //通知加载完毕
-            // sendMessage("BG.onCompleted");
+// function bindEvent() {
+//     /**
+//      * 监听网络请求和发送网络请求完毕信号
+//      * Request URL: https://wf.lianjia.com/chengjiao/
+//      */
+//     chrome.webRequest.onCompleted.addListener(function(details) {
+//             //通知加载完毕
+//             // sendMessage("BG.onCompleted");
 
 
-            console.log("BG.onCompleted")
+//             console.log("BG.onCompleted")
 
-            sendMessage("BG.START", START);
-        },
-        {urls: [ "https://wf.lianjia.com/chengjiao/*" ]}
-    );
-}
+//             sendMessage("BG.START", START);
+//         },
+//         {urls: [ "https://wf.lianjia.com/chengjiao/*" ]}
+//     );
+// }
 
 /**
  * 处理收集的数据
@@ -68,7 +68,7 @@ chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
  * 入口函数
  */
 function background() {
-    bindEvent();
+    // bindEvent();
 }
 
 background();

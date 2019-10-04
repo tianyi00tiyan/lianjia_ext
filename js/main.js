@@ -152,33 +152,67 @@ var region = ""; //当前的区域
  * 初始化
  */
 function init () {
+	//获取当前的分页状态
+	let pages = JSON.parse($('.house-lst-page-box').attr('page-data'));
+	region = window.location.pathname.replace('/chengjiao','').replace(/\/pg\d\//g, '');
+	totalPage = pages.totalPage;
+	curPage = pages.curPage;
+}
+
+/**
+ * 在页面上收集数据
+ */
+function collectData() {
+// 	var pricelist = [];
+// 	for (let i=0; i < $('.unitPrice .number').length; i++) {
+// 		pricelist.push($($('.unitPrice .number')[i]).html());
+// 	}
+	
+// 	// 通知后台拿到的数据
+// 	sendMessage("FN.collectData", {pricelist, curPage, totalPage})
+
+	let promiselist = [];
+	for (let i=1;i <= totalPage;i++) {
+		promiselist.push(getPageContent(i));
+	}
+
+	Promise.all(promiselist).then(function(values) {
+		let parser = new DOMParser();
+		let domlist = values.map((n) => {
+			return parser.parseFromString(n, "text/html")
+		})
+
+		doTotalPrice(domlist);
+		doUnitPrice(domlist);
+  	});
+}
+
+/**
+ * 子处理：处理总价
+ */
+function doTotalPrice() {
 	
 }
 
 /**
- * 收集数据
+ * 子处理：处理单价
  */
-function collectData() {
-	//获取当前的分页状态
-	let pages = JSON.parse($('.house-lst-page-box').attr('page-data'));
-	totalPage = pages.totalPage;
-	curPage = pages.curPage;
+function doUnitPrice(domlist) {
+	var unitPriceList = [];
+	var unitPriceDomLsit = [];
+	for (let i=0;i<domlist.length;i++) {
+		unitPriceDomLsit = $(domlist[i]).find('.unitPrice .number');
 
-	var pricelist = [];
-	for (let i=0; i < $('.unitPrice .number').length; i++) {
-		pricelist.push($($('.unitPrice .number')[i]).html());
+		for (let j=0; j < unitPriceDomLsit.length; j++) {
+			unitPriceList.push(parseInt($(unitPriceDomLsit[j]).html(), 10));
+		}
 	}
-	
-	// 通知后台拿到的数据
-	sendMessage("FN.collectData", {pricelist, curPage, totalPage})
 
-	//跳转到下一个页面
-	region = window.location.pathname.replace('/chengjiao','').replace(/\/pg\d\//g, '');
-	curPage = curPage + 1;
-	if (curPage < totalPage) {
-		window.location.href = `https://wf.lianjia.com/chengjiao${region}/pg${curPage}/`;
-	}
+	let sum = _.sum(unitPriceList);
+	let avgUnitPrice = parseInt(sum/domlist.length/unitPriceDomLsit.length, 10)
+	console.log("avgUnitPrice=" + avgUnitPrice)
 }
+
 
 /**
  * 从主函数main开始执行
@@ -186,21 +220,21 @@ function collectData() {
 function main () {
 	//初始化
 	init();
+
+	//获得数据
+	collectData();
 }
 
 /**
  * 等待服务加载完成再执行main()
  */
 chrome.runtime.onMessage.addListener(function(request, sender, sendResponse) {
-	console.log(request)
+	// console.log(request)
 	switch (request.type) {
-		// case "BG.onCompleted":
-		// 	main();
-		// 	break;
 		case "BG.START":
-			isSTART = request.value;
-			//获得数据
-			collectData();
+			if (request.value) {
+				main()
+			}
 			break;
 		default:
 			break;
@@ -214,12 +248,16 @@ function sendMessage(type, value) {
 	chrome.runtime.sendMessage({type: type, value: value});
 }
 
-
-
-// ["11409", "5785", "7308", "8404", "7805", "9733", "7665", "6834", "8218", "6990", "7139", "7108", "8572", "6381", "6427", "7685", "8462", "7000", "4480", "7684", "7778", "8164", "7778", "8742", "6028", "7060", "7000", "9021", "9836", "7348"]
-// ["7688", "7018", "8307", "7348", "7253", "9323", "12506", "8363", "9231", "8106", "8626", "7905", "10477", "8991", "11096", "7172", "8180", "9037", "7446", "7304", "6000", "8209", "7286", "7918", "7470", "9482", "7799", "8837", "8441", "8133"]
-// ["6863", "6848", "6624", "7946", "6968", "4890", "8708", "5469", "7484", "21236", "7659", "7943", "7858", "9253", "7116", "7584", "5359", "6827", "5566", "9306", "8737", "4640", "7677", "4734", "8362", "7245", "7620", "7980", "8000", "8034"]
-// ["8040", "7476", "9500", "7052", "10379", "8557", "8797", "7593", "6744", "8972", "8690", "8204", "7419", "8154", "8000", "9807", "7660", "9100", "7195", "7749", "8123", "8788", "8767", "6886", "8791", "5863", "9039", "7833", "6737", "8248"]
-// ["8858", "8199", "7651", "6646", "8123", "7942", "7756", "8935", "10052", "9190", "8800", "9106", "8215", "9338", "6859", "8815", "7161", "7563", "7484", "8077", "11000", "9159", "7166", "8281", "6483", "7313", "8010", "9439", "7038", "9674"]
-
-
+/**
+ * 发送请求获取页面内容
+ */
+function getPageContent(page) {
+	return new Promise((resolve, reject) => {
+		$.ajax({
+			method: "POST",
+			url: `https://wf.lianjia.com/chengjiao${region}/pg${curPage}/`	
+		}).done(function( msg ) {
+			resolve(msg);
+		});
+	})
+}
