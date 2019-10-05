@@ -216,7 +216,7 @@ function doUnitPrice(domlist) {
 	}
 
 	let sum = _.sum(unitPriceList);
-	let avgUnitPrice = parseInt(sum/domlist.length/unitPriceDomLsit.length, 10);
+	let avgUnitPrice = parseInt(sum/unitPriceList.length, 10);
 
 	// 通知后台任务完成
 	sendMessage("FN.collectData", {succeed: true, city_name, district_name, toalHouse, avgUnitPrice})
